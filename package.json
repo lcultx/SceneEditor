@@ -1,0 +1,11 @@
+{
+    "name": "SceneEditor",
+    "version": "0.0.1",
+    "dependencies": {
+        "colors": "0.6.2",
+        "express": "3.4.6",
+        "ejs": "*",
+        "node-uuid": "1.4.1",
+        "when": "2.7.0"
+    }
+}
