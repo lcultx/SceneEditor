@@ -1,7 +1,35 @@
 <% include header.ejs %>
 <% include top-nav.ejs%>
 
-<div class=""></div>
-dae上传页面
+<div class="container" style="margin-top: 100px;">
+    <div class="row clearfix">
+        <div class="col-md-12 column">
+            <form class="form-horizontal" action="/dae/upload" method="post" enctype="multipart/form-data" >
+                <fieldset>
+                    <!-- Form Name -->
+                    <legend>上传dae文件</legend>
+
+                    <!-- File Button -->
+                    <div class="control-group">
+
+                        <div class="controls">
+                            <input id="daeFile" name="daeFile" class="input-file" type="file">
+                        </div>
+                    </div>
+
+                    <!-- Button -->
+                    <div class="control-group">
+                        <label class="control-label" for=""></label>
+                        <div class="controls">
+                            <button id="" name="" class="btn btn-primary" type="submit">提交</button>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
+
+        </div>
+    </div>
+</div>
 
 <% include footer.ejs%>
