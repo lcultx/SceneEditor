@@ -1,0 +1,57 @@
+<% include header.ejs %>
+<% include top-nav.ejs%>
+
+<link rel="stylesheet" href="/lib/jquery-treegrid/css/jquery.treegrid.css">
+<script type="text/javascript" src="/lib/jquery-treegrid/js/jquery.treegrid.js"></script>
+<script type="text/javascript" src="/lib/jquery-treegrid/js/jquery.treegrid.bootstrap3.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.tree').treegrid({
+            'initialState': 'collapsed'
+        });
+    });
+</script>
+<div class="container" style="margin-top: 100px;">
+    <div class="row clearfix">
+        <div class="col-md-12 column">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">DAE FILES<span class="badge"><%=daeFiles.length%></span></a>
+
+                    <%
+                        daeFiles.forEach(function(file){
+                         %>
+
+
+
+                                <table class="table tree" style="margin-bottom: 0px;">
+                                    <tr class="treegrid-1">
+                                        <td style="width: 50%;"><%=file.name%></td><td>Additional info</td>
+                                    </tr>
+                                    <tr class="treegrid-2 treegrid-parent-1">
+                                        <td>Node 1-1</td>
+                                        <td>
+                                            <button type="button" class="btn btn-success btn-xs">json</button>
+                                            <button type="button" class="btn btn-primary btn-xs">binary</button>
+
+                                        </td>
+                                    </tr>
+                                    <tr class="treegrid-3 treegrid-parent-1">
+                                        <td>Node 1-2</td><td>Additional info</td>
+                                    </tr>
+                                    <tr class="treegrid-4 treegrid-parent-3">
+                                        <td>Node 1-2-1</td><td>Additional info</td>
+                                    </tr>
+
+                                </table>
+
+
+                    <%
+                        })
+                      %>
+                <a class="list-group-item active"><span class="badge"><%=daeFiles.length%></span>Help</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+<% include footer.ejs%>

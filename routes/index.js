@@ -15,6 +15,7 @@ module.exports = function(app){
 
     editor.routes(app);
     app.get('/',function(req,res){
-        res.render('index');
+        res.redirect('/dae/upload');
+       // res.render('index');
     });
 }
