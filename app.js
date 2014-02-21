@@ -13,12 +13,16 @@ app.set('port',process.env.PORT || 1234);
 app.set('views',path.join(__dirname,'views'));
 app.set('view engine','ejs');
 app.use(express.favicon(__dirname + '/public/favicon.ico'));
-app.use(express.bodyParser({ keepExtensions: true, uploadDir: './tmp' }));
+app.use(express.bodyParser({ keepExtensions: true, uploadDir: './tmp',limit: '200mb' }));
+
+
 /*app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.multipart());*/
 app.use(express.methodOverride());
 app.use(express.static(path.join(__dirname,'public')));
+
+
 
 //dev
 if('development' == app.get('env')){
