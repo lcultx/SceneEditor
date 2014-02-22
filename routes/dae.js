@@ -11,7 +11,7 @@ exports.routes = function(app){
     });
     app.post('/dae/upload',function(req,res){
         // 获得文件的临时路径
-        var redirect2List = function(){
+        var listDaeFiles = function(){
             res.redirect('/dae/list');
         }
         var tmp_path = req.files.daeFile.path;
@@ -25,7 +25,9 @@ exports.routes = function(app){
                 if (err) throw err;
                /* res.send('File uploaded to: ' + target_path + ' - ' + req.files.daeFile.size + ' bytes');*/
                 //解析dae,变成json存入mongodb
-                daeTools.simpleStore(target_path).then(redirect2List);
+                //daeTools.simpleStore(target_path).then(redirect2List);
+                daeTools.serializeStore(target_path);
+                //listDaeFiles();
             });
         });
     });
