@@ -9,6 +9,10 @@
         "xml2js":"0.4.1",
         "when": "2.7.0",
         "mongodb":"*",
+        "async": "~0.2.8",
         "spahql":""
+    },
+    "devDependencies": {
+        "mocha": "~1.13.0"
     }
 }

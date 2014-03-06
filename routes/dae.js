@@ -25,8 +25,8 @@ exports.routes = function(app){
                 if (err) throw err;
                /* res.send('File uploaded to: ' + target_path + ' - ' + req.files.daeFile.size + ' bytes');*/
                 //解析dae,变成json存入mongodb
-                //daeTools.simpleStore(target_path).then(redirect2List);
-                daeTools.serializeStore(target_path);
+                daeTools.simpleStore(target_path).then(redirect2List);
+                //daeTools.serializeStore(target_path);
                 //listDaeFiles();
             });
         });
