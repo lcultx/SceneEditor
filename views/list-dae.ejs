@@ -1,157 +1,52 @@
 <% include header.ejs %>
 <% include top-nav.ejs%>
-<script src="/lib/zTree/js/jquery-1.4.4.min.js"></script>
-<script src="/lib/zTree/js/jquery.ztree.core-3.5.js"></script>
-<SCRIPT type="text/javascript">
-
-    var demoMsg = {
-        async:"正在进行异步加载，请等一会儿再点击...",
-        expandAllOver: "全部展开完毕",
-        asyncAllOver: "后台异步加载完毕",
-        asyncAll: "已经异步加载完毕，不再重新加载",
-        expandAll: "已经异步加载完毕，使用 expandAll 方法"
+<style>
+    .active{
+        background:lemonchiffon;
     }
-    var setting = {
-        async: {
-            enable: true,
-            url:"/dae/node/untitled.dae/json",
-            autoParam:["id", "name=n", "level=lv"],
-            otherParam:{"otherParam":"zTreeAsyncTest"},
-            dataFilter: filter,
-            type: "get"
-        },
-        callback: {
-            beforeAsync: beforeAsync,
-            onAsyncSuccess: onAsyncSuccess,
-            onAsyncError: onAsyncError
-        }
-    };
+</style>
+<script>
+ $(function(){
+     function extendChild(event){
+         event.stopPropagation();
 
-    function filter(treeId, parentNode, childNodes) {
-        if (!childNodes) return null;
-        for (var i=0, l=childNodes.length; i<l; i++) {
-            childNodes[i].name = childNodes[i].name.replace(/\.n/g, '.');
-        }
-        return childNodes;
-    }
+         var $this =  $(this);
+         if($this.data("extended")){
+            $this.find("li").remove();
+             $this.data("extended",0);
+         }else{
+             $this.data("extended",1);
+             var uuid = $this.find('.uuid').text();
+             $.get("/dae/uuid/" + uuid,function(node){
+                 if(node && node.children){
+                     for(var i in node.children){
+                         var child = node.children[i];
+                         console.log(child);
+                         var li = '<li style="margin-left: 20px;">'
+                                 + '<a  role="branch" class="tree-toggle closed" data-toggle="branch" class="name" style="cursor: pointer">' + child.key + '</a>'
+                                 + '<a  target="_blank" href="/dae/uuid/'  + child.uuid +  ' "><span style="margin-left: 50px;float: right;" class="uuid">' + child.uuid + '</span>' + '</a>'
+                                 + '</li>'
+                         $(li).click(extendChild).hover(hover,leave).appendTo($this);
+                     }
+                 }
+             })
+         }
 
-    function beforeAsync() {
-        curAsyncCount++;
-    }
+     }
+     function hover(event){
+         event.stopPropagation();
+         console.log("add");
+         $(this).parents("li").removeClass("active");
+         $(this).addClass("active");
+     }
+     function leave(){
+         event.stopPropagation();
+         $(this).removeClass("active");
+     }
+     $("li").click(extendChild);
 
-    function onAsyncSuccess(event, treeId, treeNode, msg) {
-        curAsyncCount--;
-        if (curStatus == "expand") {
-            expandNodes(treeNode.children);
-        } else if (curStatus == "async") {
-            asyncNodes(treeNode.children);
-        }
-
-        if (curAsyncCount <= 0) {
-            if (curStatus != "init" && curStatus != "") {
-                $("#demoMsg").text((curStatus == "expand") ? demoMsg.expandAllOver : demoMsg.asyncAllOver);
-                asyncForAll = true;
-            }
-            curStatus = "";
-        }
-    }
-
-    function onAsyncError(event, treeId, treeNode, XMLHttpRequest, textStatus, errorThrown) {
-        curAsyncCount--;
-
-        if (curAsyncCount <= 0) {
-            curStatus = "";
-            if (treeNode!=null) asyncForAll = true;
-        }
-    }
-
-    var curStatus = "init", curAsyncCount = 0, asyncForAll = false,
-            goAsync = false;
-    function expandAll() {
-        if (!check()) {
-            return;
-        }
-        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
-        if (asyncForAll) {
-            $("#demoMsg").text(demoMsg.expandAll);
-            zTree.expandAll(true);
-        } else {
-            expandNodes(zTree.getNodes());
-            if (!goAsync) {
-                $("#demoMsg").text(demoMsg.expandAll);
-                curStatus = "";
-            }
-        }
-    }
-    function expandNodes(nodes) {
-        if (!nodes) return;
-        curStatus = "expand";
-        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
-        for (var i=0, l=nodes.length; i<l; i++) {
-            zTree.expandNode(nodes[i], true, false, false);
-            if (nodes[i].isParent && nodes[i].zAsync) {
-                expandNodes(nodes[i].children);
-            } else {
-                goAsync = true;
-            }
-        }
-    }
-
-    function asyncAll() {
-        if (!check()) {
-            return;
-        }
-        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
-        if (asyncForAll) {
-            $("#demoMsg").text(demoMsg.asyncAll);
-        } else {
-            asyncNodes(zTree.getNodes());
-            if (!goAsync) {
-                $("#demoMsg").text(demoMsg.asyncAll);
-                curStatus = "";
-            }
-        }
-    }
-    function asyncNodes(nodes) {
-        if (!nodes) return;
-        curStatus = "async";
-        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
-        for (var i=0, l=nodes.length; i<l; i++) {
-            if (nodes[i].isParent && nodes[i].zAsync) {
-                asyncNodes(nodes[i].children);
-            } else {
-                goAsync = true;
-                zTree.reAsyncChildNodes(nodes[i], "refresh", true);
-            }
-        }
-    }
-
-    function reset() {
-        if (!check()) {
-            return;
-        }
-        asyncForAll = false;
-        goAsync = false;
-        $("#demoMsg").text("");
-        $.fn.zTree.init($("#treeDemo"), setting);
-    }
-
-    function check() {
-        if (curAsyncCount > 0) {
-            $("#demoMsg").text(demoMsg.async);
-            return false;
-        }
-        return true;
-    }
-
-    $(document).ready(function(){
-        $.fn.zTree.init($("#treeDemo"), setting);
-        $("#expandAllBtn").bind("click", expandAll);
-        $("#asyncAllBtn").bind("click", asyncAll);
-        $("#resetBtn").bind("click", reset);
-    });
-
-</SCRIPT>
+ })
+</script>
 <div class="container" style="margin-top: 100px;">
     <div class="row clearfix">
         <div class="col-md-12 column">
@@ -164,7 +59,10 @@
                         <div class="list-group-item" >
                                 <ul class="tree" style="margin: 0;font-size: 16px;">
 
-                                    <li><a  role="branch" class="tree-toggle closed" data-toggle="branch"><%=file.name%></a></li>
+                                    <li>
+                                        <a   role="branch" class="tree-toggle closed" data-toggle="branch" class="name" style="cursor: pointer"><%=file.name%></a>
+                                        <a  target="_blank" href="/dae/uuid/<%=file.uuid%> "> <span style="margin-left: 50px;float: right;" class="uuid"><%=file.uuid%></span></a>
+                                    </li>
                                   </ul>
                         </div>
                     <%

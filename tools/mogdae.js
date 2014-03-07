@@ -10,12 +10,10 @@ var uuid = require('node-uuid');
 var async = require('async');
 var forEach = require('async-foreach').forEach;
 
-//the default value is $ ,can't use this in mongodb
-xml2js.defaults['0.2'].attrkey = '@';
-xml2js.defaults['0.2'].attrkey = '@@';
 
 var MongoClient = require('mongodb').MongoClient;
 var Grid = require('mongodb').Grid;
+var ObjectID = require('mongodb').ObjectID;
 var db,grid;
 
 MongoClient.connect("mongodb://localhost:27017/dae",function(err,_db){
@@ -24,6 +22,9 @@ MongoClient.connect("mongodb://localhost:27017/dae",function(err,_db){
 });
 
 
+//the default value is $ ,can't use this in mongodb
+xml2js.defaults['0.2'].attrkey = '@';
+xml2js.defaults['0.2'].attrkey = '@@';
 
 
 function Node(){
@@ -50,11 +51,18 @@ function LinkNode(nodeKey,nodeValue){
     this.uuid = uuid.v1();
     this.data = {
         _key:this.nodeKey,
+        _uuid:this.uuid,
         parent:{
             key:"",//这个值暂时不记录了 需要的话下次重构的时候再加吧
             uuid:""
         },
         children:[]
+    }
+}
+
+LinkNode.prototype.format = function(){
+    if(this.data.children.length == 0){
+        this.data.value = this.nodeValue;
     }
 }
 
@@ -66,11 +74,25 @@ LinkNode.prototype.save = function(){
 function BinaryNode(nodeType,nodeValue){
     this.dataType = nodeType;
     this.nodeValue = nodeValue;
-    this.uuid = uuid.v1();
+    this.uuid = new ObjectID().toString();
     this.parentUUID;
     this.parentKey;
+    this.data = "";
 }
-
+BinaryNode.prototype.format = function(){
+    var linkNode = new LinkNode(this.nodeKey,this.nodeValue);
+    linkNode.uuid = this.uuid;
+    if(this.dataType== "int"){
+        this.data = this.nodeValue[0];
+        linkNode.nodeValue = "";
+        linkNode.linkBinaryData = 'int';
+    }else{
+        this.data = this.nodeValue[0]['_'];
+        linkNode.nodeKey = this.nodeValue[0]['@@'];
+        linkNode.linkBinaryData = "float"
+    }
+    return linkNode;
+}
 BinaryNode.prototype.save = function(){
 
 }
@@ -120,8 +142,10 @@ function serializeSensor(doc){
             //thisNode.nodeValue = [];
         }else if(isIntArrayNode){
             var bin = new BinaryNode("int",nodeValue);
-            bin.uuid = thisNode.uuid;
+            bin.parentUUID = thisNode.uuid;
+            bin.parentKey = thisNode.nodeKey;
             sensorResult.binaryNode.push(bin);
+            thisNode.data.children.push({key:key,uuid:bin.uuid});
             //thisNode.nodeValue = "";
         }else if(isHaveChildNode){
             for(var key in nodeValue){
@@ -150,7 +174,11 @@ function parallelStore(sensorResult,callback){
     async.series({
             binaryPersistence:function(callback){
                 forEach(sensorResult.binaryNode,function(bin,callback){
-                    grid.put(new Buffer(bin.nodeValue[0]),{_id:bin.uuid},function(){});
+
+                    var linkNode = bin.format();
+                    sensorResult.linkNode.push(linkNode);
+                    console.log(bin.data);
+                    grid.put(new Buffer(bin.data),{_id:new ObjectID(bin.uuid)},function(){});
                 },function(err){
                     callback(null, {success:true});
                 });
@@ -158,8 +186,8 @@ function parallelStore(sensorResult,callback){
             linkNode:function(callback){
                 forEach(sensorResult.linkNode,function(node,callback){
                     var collection = db.collection('linkNode');
-                    console.log(node.data);
-                    collection.insert(node.data,{_id:node.uuid},function(){});
+                    node.format();
+                    collection.insert(node.data,{'_uuid':node.uuid},function(){});
 
                 },function(err){
                     callback(null,{success:true});
