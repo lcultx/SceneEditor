@@ -2,7 +2,7 @@
  * Created by ELatA on 14-2-19.
  */
 var fs = require('fs');
-var daeTools = require('../tools/dae.js');
+var mogDae = require('../tools/mogdae.js');
 var uuid = require('node-uuid');
 
 exports.routes = function(app){
@@ -14,20 +14,18 @@ exports.routes = function(app){
         var listDaeFiles = function(){
             res.redirect('/dae/list');
         }
-        var tmp_path = req.files.daeFile.path;
+        var tmpPath = req.files.daeFile.path;
         // 指定文件上传后的目录 - 示例为"images"目录。
-        var target_path = './upload/dae/' + req.files.daeFile.name;
+        var targetPath = './upload/dae/' + req.files.daeFile.name;
         // 移动文件
-        fs.rename(tmp_path, target_path, function(err) {
+        fs.rename(tmpPath, targetPath, function(err) {
             if (err) throw err;
             // 删除临时文件夹文件,
-            fs.unlink(tmp_path, function() {
+            fs.unlink(tmpPath, function() {
                 if (err) throw err;
-               /* res.send('File uploaded to: ' + target_path + ' - ' + req.files.daeFile.size + ' bytes');*/
-                //解析dae,变成json存入mongodb
-                daeTools.simpleStore(target_path).then(redirect2List);
-                //daeTools.serializeStore(target_path);
-                //listDaeFiles();
+                mogDae.serializeStore(targetPath,function(err,result){
+                   res.json(result);
+                })
             });
         });
     });

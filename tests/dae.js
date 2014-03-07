@@ -13,4 +13,8 @@ var daeTools = require('../models/dae.js');
 });*/
 
 var daeFilePath = 'D:\\ELatA\\SceneEditor\\tests\\data\\cube_bone.dae';
-daeTools.serializeStore(daeFilePath);
+daeTools.serializeStore(daeFilePath,function(err,res){
+    if(res.result.binaryPersistence.success && res.result.linkNode.success){
+        console.log(res.data.ROOT.uuid);
+    }
+});
